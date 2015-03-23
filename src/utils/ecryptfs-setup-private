@@ -23,10 +23,12 @@ usage() {
 	echo "
 Usage:
 
-$0 [-f|--force] [-w|--wrapping] [--nopwcheck] [-n|--no-fnek]
+$0 [--32] [-f|--force] [-w|--wrapping] [--nopwcheck] [-n|--no-fnek]
   [-u|--username USER] [-l|--loginpass LOGINPASS]
   [-m|--mountpass MOUNTPASS]
 
+ --32             Use 32-byte (highest) passphrase rather than
+                  the default 16-byte one
  -f, --force      Force overwriting of an existing setup
  -w, --wrapping   Use an independent wrapping passphrase,
                   different from the login passphrase
@@ -122,6 +124,10 @@ while [ ! -z "$1" ]; do
 		-l|--loginpass)
 			LOGINPASS="$2"
 			shift 2
+		;;
+		--32)
+			KEYBYTES=32
+			shift 1
 		;;
 		-m|--mountpass)
 			MOUNTPASS="$2"
@@ -393,7 +399,7 @@ if [ $? -ne 0 ]; then
 	error "$(gettext 'Could not add passphrase to the current keyring')"
 fi
 sig=`echo "$response" | grep "Inserted auth tok" | sed "s/^.*\[//" | sed "s/\].*$//"`
-if ! echo "$sig" | egrep -qs "^[0-9a-fA-F]{$KEYBYTES,$KEYBYTES}$"; then
+if ! echo "$sig" | egrep -qs "^[0-9a-fA-F]{16}$"; then
 	error "$(gettext 'Could not obtain the key signature')"
 fi
 temp=`mktemp`
